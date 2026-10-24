@@ -35,6 +35,15 @@ class FeedText extends StatelessWidget {
     final content =
         MarkdownContent.parse(source, showEmoji: GStorage.showEmoji);
     if (!content.isMarkdown) {
+      if (preview) {
+        final previewText = Utils.parseHtmlString(source);
+        return Text(
+          previewText,
+          maxLines: 6,
+          overflow: TextOverflow.ellipsis,
+          style: TextStyle(fontSize: fontSize, height: 1.5),
+        );
+      }
       return htmlText(source, fontSize: fontSize, picArr: picArr);
     }
     if (preview) {
