@@ -40,10 +40,9 @@ enum TabType {
 class HomeTabSettings {
   static List<TabType> get defaultTabs {
     return [
-      if (Platform.isAndroid) TabType.APP,
       TabType.FEED,
-      TabType.HOT,
       TabType.NEWS,
+      TabType.HOT,
       TabType.TOPIC,
       TabType.PRODUCT,
       TabType.COOLPIC,
@@ -198,11 +197,6 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
           ),
         ),
         actions: [
-          IconButton(
-            onPressed: () => Get.toNamed('/homeTabs'),
-            icon: const Icon(Icons.view_column_outlined),
-            tooltip: '首页栏目设置',
-          ),
           IconButton(
             onPressed: () => Get.toNamed('/search'),
             icon: const Icon(Icons.search),
