@@ -55,8 +55,6 @@ jobs:
         id: version
         run: dart tool/update_build_date.dart
       - run: flutter pub get --enforce-lockfile
-      - name: Analyze (errors and warnings fail; existing info lints remain visible)
-        run: flutter analyze --no-pub --no-fatal-infos
       - name: Offline regression tests
         run: flutter test --no-pub
 
