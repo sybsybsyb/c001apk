@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
-import '../pages/home/home_page.dart' show TabType;
+import 'home_page.dart' show TabType;
 
 class HomeTabConfigPage extends StatefulWidget {
   const HomeTabConfigPage({super.key});
@@ -33,8 +33,7 @@ class _HomeTabConfigPageState extends State<HomeTabConfigPage> {
   }
 
   List<TabType> _loadTabs() {
-    final saved = Hive.box('settings').get('homeTabOrder', defaultValue: <String>[])
-        as List<dynamic>;
+    final saved = Hive.box('settings').get('homeTabOrder', defaultValue: <String>[]) as List<dynamic>;
     final names = saved.map((item) => item.toString()).toList();
     final visible = <TabType>[];
     for (final tab in _allTabs) {
@@ -104,4 +103,3 @@ class _HomeTabConfigPageState extends State<HomeTabConfigPage> {
     );
   }
 }
-
