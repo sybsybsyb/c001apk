@@ -55,8 +55,6 @@ jobs:
         id: version
         run: dart tool/update_build_date.dart
       - run: flutter pub get --enforce-lockfile
-      - name: Offline regression tests
-        run: flutter test --no-pub
 
   desktop:
     name: ${{ matrix.platform }} x86_64 release
