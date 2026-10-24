@@ -2,8 +2,8 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:hive_flutter/hive_flutter.dart';
 
+import '../../utils/storage_util.dart';
 import 'home_page.dart' show TabType;
 
 class HomeTabConfigPage extends StatefulWidget {
@@ -33,8 +33,7 @@ class _HomeTabConfigPageState extends State<HomeTabConfigPage> {
   }
 
   List<TabType> _loadTabs() {
-    final saved = Hive.box('settings').get('homeTabOrder', defaultValue: <String>[]) as List<dynamic>;
-    final names = saved.map((item) => item.toString()).toList();
+    final names = GStorage.homeTabOrder;
     final visible = <TabType>[];
     for (final tab in _allTabs) {
       if (names.contains(tab.name)) {
@@ -49,7 +48,7 @@ class _HomeTabConfigPageState extends State<HomeTabConfigPage> {
 
   void _saveTabs() {
     final names = _tabs.map((tab) => tab.name).toList();
-    Hive.box('settings').put('homeTabOrder', names);
+    GStorage.setHomeTabOrder(names);
   }
 
   void _toggleTab(TabType tab) {

@@ -266,6 +266,16 @@ class GStorage {
     settings.put(SettingsBoxKey.staticColor, value);
   }
 
+  static List<String> get homeTabOrder {
+    final value = settings.get(SettingsBoxKey.homeTabOrder, defaultValue: <String>[]);
+    if (value is! List) return const <String>[];
+    return value.whereType<String>().toList(growable: false);
+  }
+
+  static void setHomeTabOrder(List<String> value) {
+    settings.put(SettingsBoxKey.homeTabOrder, value);
+  }
+
   static int get selectedTheme {
     return settings.get(SettingsBoxKey.selectedTheme, defaultValue: 0);
   }
@@ -527,6 +537,7 @@ class BlackListBoxKey {
 
 class SettingsBoxKey {
   static const String useMaterial = 'useMaterial',
+      homeTabOrder = 'homeTabOrder',
       staticColor = 'staticColor',
       selectedTheme = 'selectedTheme',
       szlmId = 'szlmId',
