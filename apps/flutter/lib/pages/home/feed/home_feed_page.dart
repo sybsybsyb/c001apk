@@ -50,12 +50,14 @@ class _HomeFeedPageState extends State<HomeFeedPage>
       url: switch (widget.tabType) {
         TabType.FOLLOW => Utils.getFollowUrl(followType),
         TabType.HOT => '/page?url=V9_HOME_TAB_RANKING',
+        TabType.NEWS => '/page?url=V11_HOME_TAB_NEWS',
         TabType.COOLPIC => '/page?url=V11_FIND_COOLPIC',
         _ => null,
       },
       title: switch (widget.tabType) {
         TabType.FOLLOW => Utils.getFollowTitle(followType),
         TabType.HOT => '热榜',
+        TabType.NEWS => '快讯',
         TabType.COOLPIC => '酷图',
         _ => null,
       },
@@ -161,11 +163,6 @@ class _HomeFeedPageState extends State<HomeFeedPage>
                           },
                         ),
                       );
-                      // showModalBottomSheet<dynamic>(
-                      //   context: context,
-                      //   isScrollControlled: true,
-                      //   builder: (context) => const ReplyDialog(),
-                      // );
                     },
                     tooltip: '发布动态',
                     child: const Icon(Icons.add),
@@ -176,3 +173,4 @@ class _HomeFeedPageState extends State<HomeFeedPage>
     );
   }
 }
+

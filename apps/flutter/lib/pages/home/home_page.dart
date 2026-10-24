@@ -11,12 +11,14 @@ import '../../pages/home/app/app_list_page.dart';
 import '../../pages/home/feed/home_feed_page.dart';
 import '../../pages/home/return_top_controller.dart';
 import '../../pages/home/topic/home_topic_page.dart';
+import '../../utils/storage_util.dart';
 
 enum TabType {
   FOLLOW,
   APP,
   FEED,
   HOT,
+  NEWS,
   TOPIC,
   PRODUCT,
   COOLPIC,
@@ -27,11 +29,46 @@ enum TabType {
         TabType.APP => '应用',
         TabType.FEED => '动态',
         TabType.HOT => '热门',
+        TabType.NEWS => '快讯',
         TabType.TOPIC => '话题',
         TabType.PRODUCT => '数码',
         TabType.COOLPIC => '酷图',
         TabType.NONE => '其他',
       };
+}
+
+class HomeTabSettings {
+  static List<TabType> get defaultTabs {
+    return [
+      if (Platform.isAndroid) TabType.APP,
+      TabType.FEED,
+      TabType.HOT,
+      TabType.NEWS,
+      TabType.TOPIC,
+      TabType.PRODUCT,
+      TabType.COOLPIC,
+    ];
+  }
+
+  static List<TabType> loadVisibleTabs() {
+    final savedNames = GStorage.homeTabOrder;
+    if (savedNames.isEmpty) {
+      return defaultTabs;
+    }
+
+    final selected = <TabType>[];
+    for (final tab in defaultTabs) {
+      if (savedNames.contains(tab.name)) {
+        selected.add(tab);
+      }
+    }
+
+    return selected.isNotEmpty ? selected : defaultTabs;
+  }
+
+  static void saveVisibleTabs(List<TabType> tabs) {
+    GStorage.setHomeTabOrder(tabs.map((tab) => tab.name).toList());
+  }
 }
 
 class HomePage extends StatefulWidget {
@@ -46,26 +83,61 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
   StreamSubscription<int>? _returnTopSubscription;
   final ReturnTopController _pageScrollController =
       Get.find<ReturnTopController>(tag: 'home');
-  // late final _config = Provider.of<AppConfigProvider>(context, listen: false);
-  // late bool _showFab = true; //_config.isLogin;
+  late List<TabType> _tabTypes;
 
-  final _tabTypes = [
-    if (Platform.isAndroid) TabType.APP,
-    TabType.FEED,
-    TabType.HOT,
-    TabType.TOPIC,
-    TabType.PRODUCT,
-    TabType.COOLPIC,
-  ];
+  List<Widget> _buildPages(List<TabType> tabTypes) {
+    final pages = <Widget>[];
+    for (final tabType in tabTypes) {
+      switch (tabType) {
+        case TabType.APP:
+          pages.add(const AppListPage());
+        case TabType.FEED:
+          pages.add(const HomeFeedPage(tabType: TabType.FEED));
+        case TabType.HOT:
+          pages.add(const HomeFeedPage(tabType: TabType.HOT));
+        case TabType.NEWS:
+          pages.add(const HomeFeedPage(tabType: TabType.NEWS));
+        case TabType.TOPIC:
+          pages.add(const HomeTopicPage(tabType: TabType.TOPIC));
+        case TabType.PRODUCT:
+          pages.add(const HomeTopicPage(tabType: TabType.PRODUCT));
+        case TabType.COOLPIC:
+          pages.add(const HomeFeedPage(tabType: TabType.COOLPIC));
+        case TabType.FOLLOW:
+        case TabType.NONE:
+          pages.add(const SizedBox());
+      }
+    }
+    return pages;
+  }
 
-  final _pages = [
-    if (Platform.isAndroid) const AppListPage(),
-    const HomeFeedPage(tabType: TabType.FEED),
-    const HomeFeedPage(tabType: TabType.HOT),
-    const HomeTopicPage(tabType: TabType.TOPIC),
-    const HomeTopicPage(tabType: TabType.PRODUCT),
-    const HomeFeedPage(tabType: TabType.COOLPIC),
-  ];
+  bool _tabsEqual(List<TabType> left, List<TabType> right) {
+    if (left.length != right.length) {
+      return false;
+    }
+    for (var i = 0; i < left.length; i++) {
+      if (left[i] != right[i]) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  void _syncTabsFromSettings() {
+    final nextTabs = HomeTabSettings.loadVisibleTabs();
+    if (_tabsEqual(_tabTypes, nextTabs)) {
+      return;
+    }
+
+    final currentIndex = _tabController.index.clamp(0, nextTabs.length - 1);
+    _tabController.dispose();
+    _tabController = TabController(
+      vsync: this,
+      initialIndex: currentIndex,
+      length: nextTabs.length,
+    );
+    _tabTypes = nextTabs;
+  }
 
   void scrollToTop(int index) {
     _pageScrollController.setIndex(_tabTypes[index].index);
@@ -74,10 +146,12 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
   @override
   void initState() {
     super.initState();
-
+    _tabTypes = HomeTabSettings.loadVisibleTabs();
     _tabController = TabController(
       vsync: this,
-      initialIndex: _tabTypes.indexOf(TabType.FEED),
+      initialIndex: _tabTypes.indexOf(TabType.FEED) >= 0
+          ? _tabTypes.indexOf(TabType.FEED)
+          : 0,
       length: _tabTypes.length,
     );
 
@@ -89,6 +163,15 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
   }
 
   @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final nextTabs = HomeTabSettings.loadVisibleTabs();
+    if (!_tabsEqual(_tabTypes, nextTabs)) {
+      _syncTabsFromSettings();
+    }
+  }
+
+  @override
   void dispose() {
     _returnTopSubscription?.cancel();
     _tabController.dispose();
@@ -97,6 +180,8 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
 
   @override
   Widget build(BuildContext context) {
+    _syncTabsFromSettings();
+
     return Scaffold(
       appBar: AppBar(
         automaticallyImplyLeading: false,
@@ -114,13 +199,22 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
         ),
         actions: [
           IconButton(
+            onPressed: () => Get.toNamed('/homeTabs'),
+            icon: const Icon(Icons.view_column_outlined),
+            tooltip: '首页栏目设置',
+          ),
+          IconButton(
             onPressed: () => Get.toNamed('/search'),
             icon: const Icon(Icons.search),
             tooltip: '搜索',
-          )
+          ),
         ],
       ),
-      body: TabBarView(controller: _tabController, children: _pages),
+      body: TabBarView(
+        controller: _tabController,
+        children: _buildPages(_tabTypes),
+      ),
     );
   }
 }
+
